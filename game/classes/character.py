@@ -50,5 +50,5 @@ class Character(ABC):
 
     @property
     @abstractmethod
-    def attack(self) -> Attack:
-        """Returns the main attack of the character"""
+    def attacks(self) -> list[Attack]:
+        """Returns the attacks of the character"""

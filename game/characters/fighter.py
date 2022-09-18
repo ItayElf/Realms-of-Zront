@@ -17,5 +17,5 @@ class Fighter(Character):
         return 0.3
 
     @property
-    def attack(self) -> Attack:
-        return Attack("Longsword", (1, 6))
+    def attacks(self) -> list[Attack]:
+        return [Attack("Longsword", (1, 6))]

@@ -2,6 +2,7 @@ import random
 
 from rich import box
 
+from game.classes.attack import Attack
 from game.classes.character import Character
 from game.utils import clear, Table, prich
 
@@ -15,11 +16,16 @@ def battle(characters: list[Character], monsters: list[Character]):
         characters = list(filter(lambda x: x.current_hp > 0, characters))
         monsters = list(filter(lambda x: x.current_hp > 0, monsters))
         if not characters:
-            prich("Battle was lost.")
+            prich("Game Over.", style="red bold")
             input()
             return
         if not monsters:
-            prich("Battle won!")
+            prich("Battle won!", style="green bold")
+            for c in characters:
+                l = c.level
+                c.level_up()
+                if l != c.level:
+                    prich(f"[bold]{c.name}[/] has leveled up to level {c.level}!")
             input()
             return
         show_turn_order(turn_order)
@@ -32,15 +38,16 @@ def battle(characters: list[Character], monsters: list[Character]):
 def monster_attack(turn_order: list[Character], characters: list[Character]):
     """Performs an attack with the current monster"""
     c = turn_order[0]
-    prich(f"[bold]{c.name}[/] used [bold]{c.attack.name}[/].")
+    attack = random.choice(c.attacks)
+    prich(f"[bold]{c.name}[/] used [bold]{attack.name}[/].")
     targets: list[Character] = []
     available = characters.copy()
-    while len(targets) < c.attack.targets:
+    while len(targets) < attack.targets:
         t = random.choice(available)
         available.remove(t)
         targets.append(t)
     for t in targets:
-        resolve_attack(c, t)
+        resolve_attack(attack, t)
     cycle(turn_order)
     input()
 
@@ -48,14 +55,23 @@ def monster_attack(turn_order: list[Character], characters: list[Character]):
 def player_attack(turn_order: list[Character], monsters: list[Character]):
     """Performs an attack with the player character"""
     c = turn_order[0]
-    prich(
-        f"[bold]{c.attack.name}[/]: {c.attack.targets} [white bold]target(s)[/], {c.attack.damage[0]} - {c.attack.damage[1]} [white bold]damage[/].")
+    prich("Choose attack:", style="bold")
+    for i, a in enumerate(c.attacks):
+        prich(
+            f"{i + 1}. [bold]{a.name}[/]: {a.targets} target(s), [cyan bold]{a.damage[0]}[/] - [cyan bold]{a.damage[1]}[/] damage.",
+            highlight=False)
+    ans = input("> ")
+    if not ans.isdigit() or int(ans) - 1 not in range(len(c.attacks)):
+        prich("Invalid choice.")
+        input()
+        return
+    attack = c.attacks[int(ans) - 1]
     targets: list[Character] = []
     available = monsters.copy()
-    while len(targets) < c.attack.targets:
-        prich(f"Choose target no. {len(targets) + 1}:")
+    while len(targets) < attack.targets:
+        prich(f"Choose target no. {len(targets) + 1}:", style="bold")
         for j, m in enumerate(sorted(available, key=lambda x: x.initiative, reverse=True)):
-            prich(f"{j + 1}. {m.name} ({m.current_hp}/{m.max_hp} HP)")
+            prich(f"{j + 1}. [bold]{m.name}[/] ({m.current_hp}/{m.max_hp} HP)")
         ans = input("> ")
         if not ans.isdigit() or int(ans) - 1 not in range(len(available)):
             prich("Invalid choice.")
@@ -63,32 +79,33 @@ def player_attack(turn_order: list[Character], monsters: list[Character]):
             return
         targets.append(available[int(ans) - 1])
         available.remove(available[int(ans) - 1])
+    prich(f"[bold]{c.name}[/] used [bold]{attack.name}[/].")
     for t in targets:
-        resolve_attack(c, t)
+        resolve_attack(attack, t)
     cycle(turn_order)
     input()
 
 
-def resolve_attack(attacker: Character, defender: Character):
+def resolve_attack(attack: Attack, defender: Character):
     """Resolves an attack between two characters"""
     if random.random() < defender.dodge:
-        prich(f"{defender.name} avoided the attack.")
+        prich(f"[bold]{defender.name}[/] avoided the attack.")
         return
-    damage = random.randint(*attacker.attack.damage)
-    prich(f"{defender.name} took {damage} damage.")
+    damage = random.randint(*attack.damage)
+    prich(f"[bold]{defender.name}[/] took {damage} damage.")
     defender.current_hp -= damage
     if defender.current_hp <= 0:
-        prich(f"{defender.name} died.")
+        prich(f"[bold]{defender.name}[/] died.")
 
 
 def options(turn_order: list[Character], monsters: list[Character]):
     """Shows available options"""
-    prich("1. Attack\n2. Pass")
+    prich("[bold]Select action:[/]\n1. Attack\n2. Pass")
     ans = input("> ")
     if ans == "1":
         player_attack(turn_order, monsters)
     elif ans == "2":
-        prich(f"{turn_order[0].name} passed its turn.")
+        prich(f"[bold]{turn_order[0].name}[/] passed its turn.")
         input()
         cycle(turn_order)
     else:
@@ -106,8 +123,10 @@ def show_turn_order(turn_order: list[Character]):
     for c in turn_order:
         s = "bold" if c == turn_order[0] else ""
         name = c.name if c.name == c.__class__.__name__ else f"{c.name} ({c.__class__.__name__})"
+        dmin = min(a.damage[0] for a in c.attacks)
+        dmax = max(a.damage[1] for a in c.attacks)
         table.add_row(name, str(c.initiative), f"{c.current_hp}/{c.max_hp}",
-                      f"{c.attack.damage[0]} - {c.attack.damage[1]}", f"{int(c.dodge * 100)}%", style=s)
+                      f"{dmin} - {dmax}", f"{int(c.dodge * 100)}%", style=s)
     table.print(justify="center")
 
 

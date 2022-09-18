@@ -17,5 +17,5 @@ class Goblin(Character):
         return 0.1
 
     @property
-    def attack(self) -> Attack:
-        return Attack("Dagger", (1, 3))
+    def attacks(self) -> list[Attack]:
+        return [Attack("Dagger", (1, 3))]
