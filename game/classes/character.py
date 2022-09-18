@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from game.attack import Attack
+from game.classes.attack import Attack
 
 xp_chart = {
     1: 300,

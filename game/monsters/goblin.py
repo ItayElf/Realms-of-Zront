@@ -2,20 +2,20 @@ from game.classes.attack import Attack
 from game.classes.character import Character
 
 
-class Fighter(Character):
+class Goblin(Character):
 
     @property
     def max_hp(self) -> int:
-        return 5 + 5 * self.level
+        return 3 + 2 * self.level
 
     @property
     def initiative(self) -> int:
-        return 1 + self.level
+        return 0 + self.level
 
     @property
     def dodge(self) -> float:
-        return 0.3
+        return 0.1
 
     @property
     def attack(self) -> Attack:
-        return Attack("Longsword", (1, 6))
+        return Attack("Dagger", (1, 3))
