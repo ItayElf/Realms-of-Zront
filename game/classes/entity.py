@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from game.classes.attack import Attack
+from game.classes.traits import CTrait
 
 
 @dataclass
@@ -14,6 +15,10 @@ class Entity(ABC):
     def __post_init__(self):
         if self.__class__ == Entity:
             raise TypeError("Cannot instantiate abstract class.")
+
+    def has(self, trait: CTrait) -> bool:
+        """Returns whether the entity has a specific trait"""
+        return trait in self.traits
 
     @property
     @abstractmethod
@@ -34,3 +39,8 @@ class Entity(ABC):
     @abstractmethod
     def attacks(self) -> list[Attack]:
         """Returns the attacks of the entity"""
+
+    @property
+    @abstractmethod
+    def traits(self) -> list[CTrait]:
+        """Returns the traits of the entity"""

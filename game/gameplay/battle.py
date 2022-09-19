@@ -6,6 +6,7 @@ from game.classes.attack import Attack
 from game.classes.character import Character
 from game.classes.entity import Entity
 from game.classes.monster import Monster
+from game.classes.traits import CTrait
 from game.utils import clear, Table, prich, wait
 
 
@@ -43,13 +44,19 @@ def is_game_over(turn_order: list[Entity]):
     return False
 
 
+def get_available(pool: list[Entity]):
+    if any([c.has(CTrait.FRONTLINE) for c in pool]):
+        return [c for c in pool if c.has(CTrait.FRONTLINE)]
+    return pool.copy()
+
+
 def monster_attack(turn_order: list[Entity], characters: list[Character]):
     """Performs an attack with the current monster"""
     c = turn_order[0]
     attack = random.choice(c.attacks)
     prich(f"[bold]{c.name}[/] used [bold]{attack.name}[/].")
     targets: list[Character] = []
-    available = characters.copy()
+    available = get_available(characters)
     while len(targets) < attack.targets:
         t = random.choice(available)
         available.remove(t)
@@ -75,7 +82,7 @@ def player_attack(turn_order: list[Entity], monsters: list[Monster]):
         return
     attack = c.attacks[int(ans) - 1]
     targets: list[Entity] = []
-    available = monsters.copy()
+    available = get_available(monsters)
     while len(targets) < attack.targets:
         prich(f"Choose target no. {len(targets) + 1}:", style="bold")
         for j, m in enumerate(sorted(available, key=lambda x: x.initiative, reverse=True)):
@@ -143,13 +150,15 @@ def show_turn_order(turn_order: list[Entity]):
     table.add_column("Hitpoints")
     table.add_column("Damage")
     table.add_column("Dodge")
+    table.add_column("Traits")
     for c in turn_order:
         s = "bold" if c == turn_order[0] else ""
         name = c.name if isinstance(c, Monster) else f"{c.name} ({c.__class__.__name__})"
         dmin = min(a.damage[0] for a in c.attacks)
         dmax = max(a.damage[1] for a in c.attacks)
         table.add_row(name, str(c.initiative), f"{c.current_hp}/{c.max_hp}",
-                      f"{dmin} - {dmax}", f"{int(c.dodge * 100)}%", style=s)
+                      f"{dmin} - {dmax}", f"{int(c.dodge * 100)}%",
+                      ",".join(t.name for t in c.traits).lower() if c.traits else "-", style=s)
     table.print(justify="center")
 
 

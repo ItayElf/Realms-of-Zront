@@ -1,8 +1,13 @@
 from game.classes.attack import Attack
 from game.classes.monster import Monster
+from game.classes.traits import CTrait
 
 
 class Goblin(Monster):
+
+    @property
+    def traits(self) -> list[CTrait]:
+        return []
 
     @property
     def xp_reward(self):
