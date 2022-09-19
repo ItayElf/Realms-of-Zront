@@ -6,7 +6,7 @@ from game.classes.attack import Attack
 from game.classes.character import Character
 from game.classes.entity import Entity
 from game.classes.monster import Monster
-from game.utils import clear, Table, prich
+from game.utils import clear, Table, prich, wait
 
 
 def battle(characters: list[Character], monsters: list[Monster]):
@@ -29,7 +29,7 @@ def battle(characters: list[Character], monsters: list[Monster]):
 def is_game_over(turn_order: list[Entity]):
     if all([isinstance(a, Monster) for a in turn_order]):
         prich("Game Over.", style="red bold")
-        input()
+        wait()
         return True
     elif all([isinstance(a, Character) for a in turn_order]):
         prich("Battle won!", style="green bold")
@@ -38,7 +38,7 @@ def is_game_over(turn_order: list[Entity]):
             c.level_up()  # type: ignore
             if l != c.level:
                 prich(f"[bold]{c.name}[/] has leveled up to level {c.level}!")
-        input()
+        wait()
         return True
     return False
 
@@ -57,12 +57,12 @@ def monster_attack(turn_order: list[Entity], characters: list[Character]):
     for t in targets:
         resolve_attack(attack, t)
     cycle(turn_order)
-    input()
+    wait()
 
 
 def player_attack(turn_order: list[Entity], monsters: list[Monster]):
     """Performs an attack with the player character"""
-    c = turn_order[0]
+    c = turn_order[0]  # type: ignore
     prich("Choose attack:", style="bold")
     for i, a in enumerate(c.attacks):
         prich(
@@ -71,7 +71,7 @@ def player_attack(turn_order: list[Entity], monsters: list[Monster]):
     ans = input("> ")
     if not ans.isdigit() or int(ans) - 1 not in range(len(c.attacks)):
         prich("Invalid choice.")
-        input()
+        wait()
         return
     attack = c.attacks[int(ans) - 1]
     targets: list[Entity] = []
@@ -83,7 +83,7 @@ def player_attack(turn_order: list[Entity], monsters: list[Monster]):
         ans = input("> ")
         if not ans.isdigit() or int(ans) - 1 not in range(len(available)):
             prich("Invalid choice.")
-            input()
+            wait()
             return
         targets.append(available[int(ans) - 1])
         available.remove(available[int(ans) - 1])
@@ -99,7 +99,7 @@ def player_attack(turn_order: list[Entity], monsters: list[Monster]):
             c.xp += xp // noc
             prich(f"[bold]{c.name}[/] got {xp // noc} xp! ({c.xp} / {c.xp_to_level_up} xp)")
     cycle(turn_order)
-    input()
+    wait()
 
 
 def resolve_attack(attack: Attack, defender: Entity):
@@ -108,7 +108,10 @@ def resolve_attack(attack: Attack, defender: Entity):
         prich(f"[bold]{defender.name}[/] avoided the attack.")
         return
     damage = random.randint(*attack.damage)
-    prich(f"[bold]{defender.name}[/] took {damage} damage.")
+    critical = random.random() < 0.05
+    if critical:
+        damage *= 2
+    prich(f"[bold]{defender.name}[/] took {damage} damage{' (crit!)' if critical else ''}.")
     defender.current_hp -= damage
     if defender.current_hp <= 0:
         prich(f"[bold]{defender.name}[/] died.")
@@ -126,11 +129,11 @@ def options(turn_order: list[Entity], monsters: list[Monster]):
         player_attack(turn_order, monsters)
     elif ans == "2":
         prich(f"[bold]{turn_order[0].name}[/] passed its turn.")
-        input()
+        wait()
         cycle(turn_order)
     else:
         prich("Invalid option.")
-        input()
+        wait()
 
 
 def show_turn_order(turn_order: list[Entity]):

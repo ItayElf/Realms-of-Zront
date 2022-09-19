@@ -1,3 +1,5 @@
+from getpass import getpass
+
 import rich.table
 from rich.console import Console
 
@@ -13,6 +15,10 @@ class Table(rich.table.Table):
 
 def prich(*args, **kwargs):
     return console.print(*args, **kwargs)
+
+
+def wait():
+    return getpass("")
 
 
 def clear():

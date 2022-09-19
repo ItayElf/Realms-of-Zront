@@ -6,7 +6,7 @@ class Goblin(Monster):
 
     @property
     def xp_reward(self):
-        return 25 + 25 * self.level
+        return 25 * self.level
 
     @property
     def max_hp(self) -> int:
