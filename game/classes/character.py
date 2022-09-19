@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 
-from game.classes.attack import Attack
+from game.classes.entity import Entity
 
 xp_chart = {
     1: 300,
@@ -17,12 +17,9 @@ xp_chart = {
 
 
 @dataclass
-class Character(ABC):
+class Character(Entity, ABC):
     """Base class for game characters"""
-    name: str
-    level: int
-    xp: float
-    current_hp: int
+    xp: int
 
     def __post_init__(self):
         if self.__class__ == Character:
@@ -34,21 +31,6 @@ class Character(ABC):
             self.level += 1
 
     @property
-    @abstractmethod
-    def max_hp(self) -> int:
-        """Returns the maximum hitpoints of the character"""
-
-    @property
-    @abstractmethod
-    def initiative(self) -> int:
-        """Returns the initiative of the character"""
-
-    @property
-    @abstractmethod
-    def dodge(self) -> float:
-        """Returns the dodge of the character"""
-
-    @property
-    @abstractmethod
-    def attacks(self) -> list[Attack]:
-        """Returns the attacks of the character"""
+    def xp_to_level_up(self):
+        """Returns how much xp is needed to level up"""
+        return xp_chart[self.level]

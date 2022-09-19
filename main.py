@@ -4,7 +4,7 @@ from game.monsters.goblin import Goblin
 
 
 def main():
-    battle([Fighter("Bob", 1, 0, 10)], [Goblin("Goblin", 1, 0, 5)])
+    battle([Fighter("Bob", 1, 10, 0)], [Goblin(1)])
 
 
 if __name__ == '__main__':

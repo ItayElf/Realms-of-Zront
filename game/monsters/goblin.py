@@ -1,8 +1,12 @@
 from game.classes.attack import Attack
-from game.classes.character import Character
+from game.classes.monster import Monster
 
 
-class Goblin(Character):
+class Goblin(Monster):
+
+    @property
+    def xp_reward(self):
+        return 25 + 25 * self.level
 
     @property
     def max_hp(self) -> int:
