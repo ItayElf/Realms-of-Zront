@@ -5,26 +5,27 @@ from rich import box
 from game.classes.attack import Attack
 from game.classes.character import Character
 from game.classes.entity import Entity
+from game.classes.game_state import GameState
 from game.classes.monster import Monster
 from game.classes.traits import CTrait
 from game.utils import clear, Table, prich, wait
 
 
-def battle(characters: list[Character], monsters: list[Monster]):
+def battle(game_state: GameState, monsters: list[Monster]):
     """Starts a battle between characters and monsters"""
-    turn_order: list[Entity] = list(sorted([*characters, *monsters], key=lambda x: x.initiative, reverse=True))
+    turn_order: list[Entity] = list(sorted([*game_state.party, *monsters], key=lambda x: x.initiative, reverse=True))
     while True:
         clear()
         turn_order = list(filter(lambda x: x.current_hp > 0, turn_order))
-        characters = list(filter(lambda x: x.current_hp > 0, characters))
+        game_state.party = list(filter(lambda x: x.current_hp > 0, game_state.party))
         monsters = list(filter(lambda x: x.current_hp > 0, monsters))
         if is_game_over(turn_order):
             return
         show_turn_order(turn_order)
-        if turn_order[0] in characters:
+        if turn_order[0] in game_state.party:
             options(turn_order, monsters)
         else:
-            monster_attack(turn_order, characters)
+            monster_attack(turn_order, game_state.party)
 
 
 def is_game_over(turn_order: list[Entity]):
@@ -152,7 +153,7 @@ def show_turn_order(turn_order: list[Entity]):
     table.add_column("Dodge")
     table.add_column("Traits")
     for c in turn_order:
-        s = "bold" if c == turn_order[0] else ""
+        s = "bold" if c is turn_order[0] else ""
         name = c.name if isinstance(c, Monster) else f"{c.name} ({c.__class__.__name__})"
         dmin = min(a.damage[0] for a in c.attacks)
         dmax = max(a.damage[1] for a in c.attacks)
