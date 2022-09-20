@@ -10,6 +10,7 @@ def main():
         game_state,
         [Goblin(1), Goblin(1), Goblin(1), Goblin(1)]
     )
+    print(game_state)
 
 
 if __name__ == '__main__':

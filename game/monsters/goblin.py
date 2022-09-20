@@ -1,9 +1,16 @@
+import random
+
 from game.classes.attack import Attack
+from game.classes.item import Item
 from game.classes.monster import Monster
 from game.classes.traits import CTrait
 
 
 class Goblin(Monster):
+
+    @property
+    def loot(self) -> int | Item:
+        return random.randint(0, 5)
 
     @property
     def traits(self) -> list[CTrait]:

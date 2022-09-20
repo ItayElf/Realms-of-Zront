@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 from game.classes.entity import Entity
+from game.classes.item import Item
 
 
 @dataclass
@@ -19,3 +20,8 @@ class Monster(Entity, ABC):
     @abstractmethod
     def xp_reward(self) -> int:
         """Returns the xp gained by killing the monster"""
+
+    @property
+    @abstractmethod
+    def loot(self) -> int | Item:
+        """Returns the loot got from the monster, which is either coins or an item."""

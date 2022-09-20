@@ -6,6 +6,7 @@ from game.classes.attack import Attack
 from game.classes.character import Character
 from game.classes.entity import Entity
 from game.classes.game_state import GameState
+from game.classes.item import Item
 from game.classes.monster import Monster
 from game.classes.traits import CTrait
 from game.utils import clear, Table, prich, wait
@@ -23,7 +24,7 @@ def battle(game_state: GameState, monsters: list[Monster]):
             return
         show_turn_order(turn_order)
         if turn_order[0] in game_state.party:
-            options(turn_order, monsters)
+            options(turn_order, monsters, game_state)
         else:
             monster_attack(turn_order, game_state.party)
 
@@ -97,8 +98,18 @@ def player_attack(turn_order: list[Entity], monsters: list[Monster]):
         available.remove(available[int(ans) - 1])
     prich(f"[bold]{c.name}[/] used [bold]{attack.name}[/].")
     xp = 0
+    coins = 0
+    items: list[Item] = []
     for t in targets:
-        xp += resolve_attack(attack, t)
+        xp_got, loot = resolve_attack(attack, t)
+        xp += xp_got
+        if loot:
+            if isinstance(loot, Item):
+                items.append(loot)
+                prich(f"[bold]{t.name}[/] dropped a {loot.name}.")
+            else:
+                coins += loot
+                prich(f"[bold]{t.name}[/] dropped {coins} coins.")
     if xp:
         cs = list(filter(lambda x: isinstance(x, Character), turn_order))
         noc = len(cs)
@@ -108,13 +119,14 @@ def player_attack(turn_order: list[Entity], monsters: list[Monster]):
             prich(f"[bold]{c.name}[/] got {xp // noc} xp! ({c.xp} / {c.xp_to_level_up} xp)")
     cycle(turn_order)
     wait()
+    return coins, items
 
 
-def resolve_attack(attack: Attack, defender: Entity):
+def resolve_attack(attack: Attack, defender: Entity) -> tuple[int, int | Item]:
     """Resolves an attack between two characters"""
     if random.random() < defender.dodge:
         prich(f"[bold]{defender.name}[/] avoided the attack.")
-        return
+        return 0, 0
     damage = random.randint(*attack.damage)
     critical = random.random() < 0.05
     if critical:
@@ -125,16 +137,18 @@ def resolve_attack(attack: Attack, defender: Entity):
         prich(f"[bold]{defender.name}[/] died.")
         if isinstance(defender, Monster):
             d: Monster = defender
-            return d.xp_reward
-    return 0
+            return d.xp_reward, d.loot
+    return 0, 0
 
 
-def options(turn_order: list[Entity], monsters: list[Monster]):
+def options(turn_order: list[Entity], monsters: list[Monster], game_state: GameState):
     """Shows available options"""
     prich("[bold]Select action:[/]\n1. Attack\n2. Pass")
     ans = input("> ")
     if ans == "1":
-        player_attack(turn_order, monsters)
+        coins, items = player_attack(turn_order, monsters)
+        game_state.money += coins
+        game_state.items += items
     elif ans == "2":
         prich(f"[bold]{turn_order[0].name}[/] passed its turn.")
         wait()
