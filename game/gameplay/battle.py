@@ -9,6 +9,7 @@ from game.classes.game_state import GameState
 from game.classes.item import Item
 from game.classes.monster import Monster
 from game.classes.traits import CTrait
+from game.items.healing_item import HealingItem
 from game.utils import clear, Table, prich, wait
 
 
@@ -106,7 +107,7 @@ def player_attack(turn_order: list[Entity], monsters: list[Monster]):
         if loot:
             if isinstance(loot, Item):
                 items.append(loot)
-                prich(f"[bold]{t.name}[/] dropped a {loot.name}.")
+                prich(f"[bold]{t.name}[/] dropped a [bold]{loot.name}[/].")
             else:
                 coins += loot
                 prich(f"[bold]{t.name}[/] dropped {coins} coins.")
@@ -141,15 +142,44 @@ def resolve_attack(attack: Attack, defender: Entity) -> tuple[int, int | Item]:
     return 0, 0
 
 
+def use_item(game_state: GameState, c: Entity):
+    """Uses an item"""
+    if not game_state.items:
+        prich("No items.")
+        return False
+    prich("Choose an item:", style="bold")
+    for i, a in enumerate(sorted(game_state.items, key=lambda x: x.name)):
+        prich(
+            f"{i + 1}. [bold]{a.name}[/]: {a.description}", )
+    ans = input("> ")
+    if not ans.isdigit() or int(ans) - 1 not in range(len(game_state.items)):
+        prich("Invalid choice.")
+        wait()
+        return False
+    item = list(sorted(game_state.items, key=lambda x: x.name))[int(ans) - 1]
+    if isinstance(item, HealingItem):
+        heal = item.heal()
+        c.current_hp = min(c.max_hp, c.current_hp + heal)
+        game_state.items.remove(item)
+        prich(f"[bold]{c.name}[/] was healed for {heal} hitpoints. ({c.current_hp} / {c.max_hp})")
+        wait()
+
+    return True
+
+
 def options(turn_order: list[Entity], monsters: list[Monster], game_state: GameState):
     """Shows available options"""
-    prich("[bold]Select action:[/]\n1. Attack\n2. Pass")
+    prich(f"[bold]What should {turn_order[0].name} do?:[/]\n1. Attack\n2. Use an item\n3. Pass")
     ans = input("> ")
     if ans == "1":
         coins, items = player_attack(turn_order, monsters)
         game_state.money += coins
         game_state.items += items
     elif ans == "2":
+        used = use_item(game_state, turn_order[0])
+        if used:
+            cycle(turn_order)
+    elif ans == "3":
         prich(f"[bold]{turn_order[0].name}[/] passed its turn.")
         wait()
         cycle(turn_order)
