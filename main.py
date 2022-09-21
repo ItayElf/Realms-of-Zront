@@ -6,7 +6,7 @@ from game.monsters.goblin import Goblin
 
 
 def main():
-    game_state = GameState(Difficulty.DEADLY, [Fighter("Bob", 1, 10, 0), Fighter("Bill", 1, 10, 0)], 0,
+    game_state = GameState(Difficulty.DEADLY, [Fighter("Bob", 3, 10), Fighter("Bill", 4, 10)], 0,
                            [HealingItem("Potion of Lesser Healing", 1, 4)])
     battle(
         game_state,

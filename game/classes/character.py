@@ -19,7 +19,7 @@ xp_chart = {
 @dataclass
 class Character(Entity, ABC):
     """Base class for game characters"""
-    xp: int
+    xp: int = 0
 
     def __post_init__(self):
         if self.__class__ == Character:

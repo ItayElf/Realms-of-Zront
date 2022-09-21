@@ -1,6 +1,6 @@
 from game.classes.attack import Attack
 from game.classes.character import Character
-from game.classes.traits import CTrait
+from game.classes.traits import CTrait, ATrait
 
 
 class Fighter(Character):
@@ -19,8 +19,12 @@ class Fighter(Character):
 
     @property
     def dodge(self) -> float:
-        return 0.3
+        return 0.2
 
     @property
     def attacks(self) -> list[Attack]:
-        return [Attack("Longsword", (1, 6))]
+        a = [Attack("Longsword", (1 + self.level // 3, 6 + self.level // 3))]
+        if self.level >= 2:
+            a.append(Attack("Stunning Strike", (1 + (self.level - 1) // 3, 4 + (self.level - 1) // 3),
+                            traits=[ATrait.STUNNING]))
+        return a

@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from game.classes.attack import Attack
+from game.classes.conditions import Condition
 from game.classes.traits import CTrait
 
 
@@ -11,14 +12,19 @@ class Entity(ABC):
     name: str
     level: int
     current_hp: int
+    conditions: set[Condition] = field(default_factory=set)
 
     def __post_init__(self):
         if self.__class__ == Entity:
             raise TypeError("Cannot instantiate abstract class.")
 
-    def has(self, trait: CTrait) -> bool:
+    def has_trait(self, trait: CTrait) -> bool:
         """Returns whether the entity has a specific trait"""
         return trait in self.traits
+
+    def has_condition(self, condition: Condition) -> bool:
+        """Returns whether the entity has a specific condition"""
+        return condition in self.conditions
 
     @property
     @abstractmethod
